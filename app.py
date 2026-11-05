@@ -1,15 +1,13 @@
 import math
 from datetime import datetime, timedelta
 from typing import Dict, List, Any
+from pathlib import Path
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 import swisseph as swe
 
 app = FastAPI(title="Parashara Vedic Astrology & 9-Year Prediction Engine")
-templates = Jinja2Templates(directory="templates")
-
 # Set Lahiri Ayanamsa (Chitrapaksha)
 swe.set_sid_mode(swe.SIDM_LAHIRI)
 
@@ -274,9 +272,9 @@ def generate_9_year_predictions(birth_dt: datetime, chart_data: Dict[str, Any], 
     return predictions
 
 @app.get("/", response_class=HTMLResponse)
-async def serve_index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
-
+async def serve_index():
+    index_file = Path(__file__).parent / "templates" / "index.html"
+    return HTMLResponse(content=index_file.read_text(encoding="utf-8"))
 @app.post("/api/generate-kundali")
 async def generate_kundali_api(req: HoroscopeRequest):
     jd = get_julian_day(req.year, req.month, req.day, req.hour, req.minute, req.second, req.timezone_offset)
