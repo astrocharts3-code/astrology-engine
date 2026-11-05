@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Vedic Kundali & 9-Year Life Forecast</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @media print {
+      body { background-color: #ffffff; }
+      .no-print { display: none !important; }
+      .page-break { page-break-before: always; }
+      .chart-container { width: 100% !important; border: 1px solid #78350f !important; }
+    }
+    .chart-box {
+      stroke: #78350f;
+      stroke-width: 2;
+      fill: #fffbeb;
+    }
+    .chart-line {
+      stroke: #92400e;
+      stroke-width: 1.5;
+    }
+  </style>
+</head>
+<body class="bg-amber-50 text-slate-800 min-h-screen">
+  <div class="max-w-6xl mx-auto py-8 px-4">
+    
+    <!-- User Input Card -->
+    <div class="no-print bg-white p-6 rounded-xl shadow-lg border border-amber-200 mb-8">
+      <h1 class="text-2xl font-bold text-amber-900 mb-4">Vedic Astrology & 9-Year Prediction Engine</h1>
+      <form id="astrologyForm" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div>
+          <label class="block text-xs font-semibold text-gray-700">Client Name</label>
+          <input type="text" id="name" value="Kapil Kumar" class="w-full mt-1 p-2 border rounded border-amber-300">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-700">Birth Date</label>
+          <input type="date" id="birthDate" value="1988-04-21" class="w-full mt-1 p-2 border rounded border-amber-300">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-700">Birth Time</label>
+          <input type="time" id="birthTime" value="14:30" step="1" class="w-full mt-1 p-2 border rounded border-amber-300">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-700">Timezone Offset (IST = 5.5)</label>
+          <input type="number" step="0.1" id="tz" value="5.5" class="w-full mt-1 p-2 border rounded border-amber-300">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-700">Latitude (e.g. Faridabad: 28.4089)</label>
+          <input type="number" step="0.0001" id="lat" value="28.4089" class="w-full mt-1 p-2 border rounded border-amber-300">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-700">Longitude (e.g. Faridabad: 77.3178)</label>
+          <input type="number" step="0.0001" id="lon" value="77.3178" class="w-full mt-1 p-2 border rounded border-amber-300">
+        </div>
+        <div class="md:col-span-2 flex items-end">
+          <button type="button" onclick="calculateChart()" class="w-full bg-amber-800 hover:bg-amber-900 text-white font-bold py-2 px-4 rounded transition">
+            Generate Horoscope & 9-Year Report
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Print Action Bar -->
+    <div id="printBar" class="no-print hidden flex justify-between items-center mb-6 bg-amber-100 p-4 rounded-lg border border-amber-300">
+      <span class="text-amber-900 font-medium">Kundali & 9-Year Predictions generated successfully.</span>
+      <button onclick="window.print()" class="bg-amber-900 hover:bg-amber-950 text-white px-5 py-2 rounded shadow font-semibold">
+        Download PDF Report
+      </button>
+    </div>
+
+    <!-- Document Output Section -->
+    <div id="reportSection" class="hidden bg-white p-8 rounded-xl shadow-lg border border-amber-200">
+      
+      <!-- Report Header -->
+      <div class="border-b-2 border-amber-800 pb-4 mb-6 flex justify-between items-end">
+        <div>
+          <h2 class="text-3xl font-extrabold text-amber-950" id="repName">Client Report</h2>
+          <p class="text-sm text-gray-600" id="repMeta">Birth Chart Analysis</p>
+        </div>
+        <div class="text-right">
+          <span class="text-xs uppercase tracking-widest text-amber-800 font-bold">Chitrapaksha Lahiri Ayanamsa</span>
+          <p class="text-sm font-semibold text-gray-700">Vedic Horoscope & 9-Year Transit Forecast</p>
+        </div>
+      </div>
+
+      <!-- Section 1: Panchang & Fundamentals -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-amber-50 p-4 rounded-lg border border-amber-200">
+          <h3 class="font-bold text-amber-900 mb-2 border-b border-amber-300 pb-1">Ascendant (Lagna)</h3>
+          <p class="text-sm"><strong>Rashi:</strong> <span id="ascSign">-</span></p>
+          <p class="text-sm"><strong>Longitude:</strong> <span id="ascDeg">-</span></p>
+        </div>
+        <div class="bg-amber-50 p-4 rounded-lg border border-amber-200">
+          <h3 class="font-bold text-amber-900 mb-2 border-b border-amber-300 pb-1">Moon Sign (Rashi)</h3>
+          <p class="text-sm"><strong>Rashi:</strong> <span id="moonSign">-</span></p>
+          <p class="text-sm"><strong>Nakshatra:</strong> <span id="moonNak">-</span></p>
+          <p class="text-sm"><strong>Pada:</strong> <span id="moonPada">-</span></p>
+        </div>
+        <div class="bg-amber-50 p-4 rounded-lg border border-amber-200">
+          <h3 class="font-bold text-amber-900 mb-2 border-b border-amber-300 pb-1">Cosmic Energy</h3>
+          <p class="text-sm"><strong>Ayanamsa:</strong> Lahiri (24°+)</p>
+          <p class="text-sm"><strong>Vimshottari Cycle:</strong> 120 Years</p>
+        </div>
+      </div>
+
+      <!-- Section 2: North Indian Chart + Planetary Degrees -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center mb-10">
+        <div>
+          <h3 class="font-bold text-lg text-amber-950 mb-3">Lagna Chart (D1 - North Indian)</h3>
+          <div class="chart-container w-full max-w-[400px] mx-auto bg-amber-50 p-2 rounded border border-amber-300">
+            <svg id="northChart" viewBox="0 0 400 400" class="w-full h-auto">
+              <!-- Outer Box -->
+              <rect x="0" y="0" width="400" height="400" class="chart-box" />
+              <!-- Diagonal Lines -->
+              <line x1="0" y1="0" x2="400" y2="400" class="chart-line" />
+              <line x1="400" y1="0" x2="0" y2="400" class="chart-line" />
+              <!-- Central Diamond -->
+              <polygon points="200,0 400,200 200,400 0,200" class="chart-line" fill="none" />
+              <!-- Text Elements for Houses -->
+              <g id="chartTexts" font-family="sans-serif" font-size="11" fill="#451a03"></g>
+            </svg>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="font-bold text-lg text-amber-950 mb-3">Planetary Coordinates</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border border-amber-200">
+              <thead class="bg-amber-100 text-amber-900 font-bold">
+                <tr>
+                  <th class="p-2 border">Body</th>
+                  <th class="p-2 border">Rashi</th>
+                  <th class="p-2 border">House</th>
+                  <th class="p-2 border">Degree</th>
+                  <th class="p-2 border">State</th>
+                </tr>
+              </thead>
+              <tbody id="planetTableBody" class="divide-y divide-amber-100">
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3: 9-Year Comprehensive Forecast -->
+      <div class="page-break mt-8">
+        <h3 class="text-2xl font-black text-amber-950 mb-4 pb-2 border-b-2 border-amber-800">
+          9-Year Sequential Life Forecast
+        </h3>
+        <div id="forecastContainer" class="space-y-6"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    async function calculateChart() {
+      const birthDate = document.getElementById("birthDate").value.split("-");
+      const birthTime = document.getElementById("birthTime").value.split(":");
+      
+      const payload = {
+        name: document.getElementById("name").value,
+        year: parseInt(birthDate[0]),
+        month: parseInt(birthDate[1]),
+        day: parseInt(birthDate[2]),
+        hour: parseInt(birthTime[0]),
+        minute: parseInt(birthTime[1]),
+        second: birthTime[2] ? parseInt(birthTime[2]) : 0,
+        latitude: parseFloat(document.getElementById("lat").value),
+        longitude: parseFloat(document.getElementById("lon").value),
+        timezone_offset: parseFloat(document.getElementById("tz").value)
+      };
+
+      try {
+        const response = await fetch("/api/generate-kundali", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        renderReport(data);
+      } catch (err) {
+        alert("Calculation error: " + err);
+      }
+    }
+
+    function renderReport(data) {
+      document.getElementById("printBar").classList.remove("hidden");
+      document.getElementById("reportSection").classList.remove("hidden");
+
+      document.getElementById("repName").innerText = data.client_name;
+      document.getElementById("repMeta").innerText = `Born: ${data.birth_details.datetime} | Lat: ${data.birth_details.latitude}, Lon: ${data.birth_details.longitude}`;
+      
+      document.getElementById("ascSign").innerText = data.chart_data.ascendant.sign;
+      document.getElementById("ascDeg").innerText = `${data.chart_data.ascendant.degree_in_sign.toFixed(2)}°`;
+      
+      document.getElementById("moonSign").innerText = data.chart_data.planets.Moon.sign;
+      document.getElementById("moonNak").innerText = data.chart_data.moon_nakshatra.name;
+      document.getElementById("moonPada").innerText = data.chart_data.moon_nakshatra.pada;
+
+      // Render Planetary Table
+      const tbody = document.getElementById("planetTableBody");
+      tbody.innerHTML = "";
+      for (const [pName, info] of Object.entries(data.chart_data.planets)) {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td class="p-2 border font-semibold">${pName}</td>
+          <td class="p-2 border">${info.sign}</td>
+          <td class="p-2 border">${info.house}</td>
+          <td class="p-2 border">${info.degree_in_sign.toFixed(2)}°</td>
+          <td class="p-2 border">${info.is_retrograde ? '<span class="text-red-700 font-bold">R</span>' : 'Direct'}</td>
+        `;
+        tbody.appendChild(row);
+      }
+
+      // Render North Indian Chart SVG Texts
+      renderNorthChart(data.chart_data);
+
+      // Render 9-Year Predictions
+      const forecastDiv = document.getElementById("forecastContainer");
+      forecastDiv.innerHTML = "";
+      data.predictions_9yr.forEach(pred => {
+        const card = document.createElement("div");
+        card.className = "p-5 rounded-lg border border-amber-200 bg-amber-50/50";
+        card.innerHTML = `
+          <div class="flex justify-between items-center border-b border-amber-200 pb-2 mb-3">
+            <h4 class="text-lg font-bold text-amber-900">Year ${pred.year_number}: ${pred.period}</h4>
+            <span class="text-xs font-semibold px-2 py-1 bg-amber-200 text-amber-900 rounded">
+              Dasha: ${pred.mahadasha} / ${pred.antardasha}
+            </span>
+          </div>
+          <div class="text-xs font-bold text-amber-800 mb-2">${pred.theme}</div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm mt-3">
+            <div>
+              <strong class="text-amber-950 block mb-1">Career & Direction</strong>
+              <p class="text-gray-700 leading-relaxed">${pred.career_forecast}</p>
+            </div>
+            <div>
+              <strong class="text-amber-950 block mb-1">Finance & Assets</strong>
+              <p class="text-gray-700 leading-relaxed">${pred.financial_forecast}</p>
+            </div>
+            <div>
+              <strong class="text-amber-950 block mb-1">Health & Harmony</strong>
+              <p class="text-gray-700 leading-relaxed">${pred.health_relationship}</p>
+            </div>
+          </div>
+          <div class="mt-3 pt-2 border-t border-amber-200 text-xs text-amber-900">
+            <strong>Recommended Focus / Upaya:</strong> ${pred.remedies}
+          </div>
+        `;
+        forecastDiv.appendChild(card);
+      });
+    }
+
+    function renderNorthChart(chartData) {
+      const g = document.getElementById("chartTexts");
+      g.innerHTML = "";
+
+      // Group planets by house
+      const housePlanets = {1:[], 2:[], 3:[], 4:[], 5:[], 6:[], 7:[], 8:[], 9:[], 10:[], 11:[], 12:[]};
+      for (const [pName, pInfo] of Object.entries(chartData.planets)) {
+        const pLabel = pName.substring(0, 2) + (pInfo.is_retrograde ? "(R)" : "");
+        housePlanets[pInfo.house].push(pLabel);
+      }
+
+      // Centers for houses 1 to 12 in North Indian Diamond Chart (400x400)
+      const houseCenters = {
+        1:  { x: 200, y: 130 },
+        2:  { x: 100, y: 70 },
+        3:  { x: 50,  y: 120 },
+        4:  { x: 120, y: 200 },
+        5:  { x: 50,  y: 280 },
+        6:  { x: 100, y: 330 },
+        7:  { x: 200, y: 270 },
+        8:  { x: 300, y: 330 },
+        9:  { x: 350, y: 280 },
+        10: { x: 280, y: 200 },
+        11: { x: 350, y: 120 },
+        12: { x: 300, y: 70 }
+      };
+
+      const ascSignIdx = chartData.ascendant.sign_idx;
+
+      for (let h = 1; h <= 12; h++) {
+        const pt = houseCenters[h];
+        // Rashi number in Parashara system (1 = Aries, ..., 12 = Pisces)
+        const rashiNumber = ((ascSignIdx + (h - 1)) % 12) + 1;
+        
+        // Render Rashi number watermark
+        const rashiText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        rashiText.setAttribute("x", pt.x);
+        rashiText.setAttribute("y", pt.y - 12);
+        rashiText.setAttribute("text-anchor", "middle");
+        rashiText.setAttribute("font-size", "10");
+        rashiText.setAttribute("fill", "#b45309");
+        rashiText.setAttribute("font-weight", "bold");
+        rashiText.textContent = rashiNumber;
+        g.appendChild(rashiText);
+
+        // Render Occupying Planets
+        const planets = housePlanets[h];
+        if (planets.length > 0) {
+          const pText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          pText.setAttribute("x", pt.x);
+          pText.setAttribute("y", pt.y + 4);
+          pText.setAttribute("text-anchor", "middle");
+          pText.setAttribute("font-size", "9");
+          pText.setAttribute("font-weight", "600");
+          pText.setAttribute("fill", "#1c1917");
+          pText.textContent = planets.join(" ");
+          g.appendChild(pText);
+        }
+      }
+    }
+  </script>
+</body>
+</html>
